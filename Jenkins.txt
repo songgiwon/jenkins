@@ -1,0 +1,3 @@
+Jenkins vs BuildPacks
+Like vs Love
+Hot vs Cold
