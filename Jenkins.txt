@@ -1,3 +1,42 @@
-Jenkins vs BuildPacks
-Like vs Love
-Hot vs Cold
+pipeline {
+  agent any
+  environment {
+    AWS_REGION = 'your_aws_region'
+    ECR_REGISTRY = 'your_ecr_registry'
+    ECR_REPOSITORY = 'your_ecr_repository'
+    DH_CREDS = credentials('dh-creds')
+  }
+  stages {
+    stage('information') {
+      steps {
+        sh 'pack version'
+        sh 'pack report'
+        sh 'env | sort'
+      }
+    }
+    stage('login') {
+      steps {
+        sh 'echo $DH_CREDS_PSW | docker login --username=$DH_CREDS_USR --password-stdin'
+      }
+    }
+    stage('build') {
+      steps {
+        sh 'pack build $ECR_REGISTRY/$ECR_REPOSITORY:${GIT_COMMIT:0:7} --path . --builder gcr.io/buildpacks/builder:v1 --publish'
+      }
+    }
+    stage('push-to-ecr') {
+      steps {
+        withAWS(region: AWS_REGION, credentials: 'aws-creds') {
+          sh "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY"
+          sh "docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${GIT_COMMIT:0:7} $ECR_REGISTRY/$ECR_REPOSITORY:${GIT_COMMIT:0:7}"
+          sh "docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GIT_COMMIT:0:7}"
+        }
+      }
+    }
+  }
+  post {
+    always {
+      sh 'docker logout'
+    }
+  }
+}
