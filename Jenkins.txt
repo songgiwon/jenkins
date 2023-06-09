@@ -1,9 +1,9 @@
 pipeline {
   agent any
   environment {
-    AWS_REGION = 'your_aws_region'
-    ECR_REGISTRY = 'your_ecr_registry'
-    ECR_REPOSITORY = 'your_ecr_repository'
+    AWS_REGION = 'ap-northeast-2'
+    ECR_REGISTRY = '267279235400.dkr.ecr.ap-northeast-2.amazonaws.com'
+    ECR_REPOSITORY = 'tteopip'
     DH_CREDS = credentials('dh-creds')
   }
   stages {
